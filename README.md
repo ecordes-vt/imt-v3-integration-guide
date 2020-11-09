@@ -19,14 +19,14 @@ Sections:
 
 [job notifications](#job-notifications)
 
-## Veritone V3 API Flow
+## Veritone API Flow
 
 1. `createJob` - Create a cognition job.
 2. `checkJobStatus` - Check the status of a job. (optional, you can also use a webhook)
 3. `retrieveEngineOutput` - Retrieve the output of a completed job.
 
 
-## Using Veritone's V3 API
+## Using Veritone's API
 
 ### Set your request headers
 
@@ -37,7 +37,7 @@ Example: `"x-veritone-application": "org:your_org_guid"`
 Please set `x-veritone-application` header on all API requests. If you do not know your orgGuid, contact your customer service manager. 
 
 
-## Example Veritone V3 API Calls
+## Example Veritone API Calls
 
 # Creating a job
 
@@ -90,6 +90,7 @@ mutation TranscriptionJob {
           executionPreferences: { parentCompleteBeforeStarting: true, priority:-20 }
         }
         {
+          # Output writer
           engineId: "8eccf9cc-6b6d-4d7d-8cb3-7ebf4950c5f3"
           executionPreferences: { parentCompleteBeforeStarting: true, priority:-20 }
           ioFolders: [
@@ -158,6 +159,7 @@ mutation FaceBoxJob {
           executionPreferences: { parentCompleteBeforeStarting: true, priority:-20 }
         }
         {
+          # Output writer
           engineId: "8eccf9cc-6b6d-4d7d-8cb3-7ebf4950c5f3"
           executionPreferences: { parentCompleteBeforeStarting: true, priority:-20 }
           ioFolders: [
@@ -221,6 +223,7 @@ mutation LogoRecognitionJob {
           executionPreferences: { parentCompleteBeforeStarting: true, priority:-20 }
         }
         {
+          # Output writer
           engineId: "8eccf9cc-6b6d-4d7d-8cb3-7ebf4950c5f3"
           executionPreferences: { parentCompleteBeforeStarting: true, priority:-20 }
           ioFolders: [
@@ -282,6 +285,7 @@ mutation GoogleOCRJob {
           executionPreferences: { parentCompleteBeforeStarting: true, priority:-20 }
         }
         {
+          # Output writer
           engineId: "8eccf9cc-6b6d-4d7d-8cb3-7ebf4950c5f3"
           executionPreferences: { parentCompleteBeforeStarting: true, priority:-20 }
           ioFolders: [

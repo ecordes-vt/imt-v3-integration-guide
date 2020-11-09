@@ -66,36 +66,23 @@ This mutation returns a jobId and a TDOId.  These values are used when retrievin
 ```
 mutation TranscriptionJob {
     createJob(input: {
-      target: { status: "downloaded" } 
-      # targetId: 123456789 # use this line with the tdoId and comment the line above to reprocess an existing piece of media
-      clusterId :"rt-1cdc1d6d-a500-467a-bc46-d3c5bf3d6901"
+      target: { status: "downloaded" }
       tasks: [
         {
-          # webstream adapter
-          engineId: "9e611ad7-2d3b-48f6-a51b-0a1ba40fe255"
-          payload: { url: "LINK_TO_YOUR_FILE" }
-          ioFolders: [
-            { referenceId: "wsaOutputFolder", mode: stream, type: output }
-          ]
-          executionPreferences: { priority:-20 }
-        }
-        {
-          # Ingester engine to break audio into chunks
           engineId: "8bdb0e3b-ff28-4f6e-a3ba-887bd06e6440"
           payload:{
-            ffmpegTemplate: "audio"
-            customFFMPEGProperties: { chunkSizeInSeconds: "60" }
+            ffmpegTemplate: "audio",
+            url: "LINK_TO_YOUR_FILE",
+            customFFMPEGProperties: { chunkSizeInSeconds: "300" }
           }
           ioFolders: [
-            { referenceId: "siInputFolder", mode: stream, type: input }
             { referenceId: "siOutputFolder", mode: chunk, type: output }
           ]
-          executionPreferences: { parentCompleteBeforeStarting: true, priority:-20 }
+          executionPreferences: { parentCompleteBeforeStarting: false, priority:-20 }
         }
         {
-          # English transcription with optional payload field
-          engineId: "ENTER_ENGINE_ID"
-          # payload: { keywords: "" } # you can also include keywords to improve engine results
+          engineId: "ENGINE_ID"
+          # payload: { keywords: "" }
           ioFolders: [
             { referenceId: "engineInputFolder", mode: chunk, type: input }
             { referenceId: "engineOutputFolder", mode: chunk, type: output }
@@ -103,7 +90,6 @@ mutation TranscriptionJob {
           executionPreferences: { parentCompleteBeforeStarting: true, priority:-20 }
         }
         {
-          # Output writer
           engineId: "8eccf9cc-6b6d-4d7d-8cb3-7ebf4950c5f3"
           executionPreferences: { parentCompleteBeforeStarting: true, priority:-20 }
           ioFolders: [
@@ -112,12 +98,6 @@ mutation TranscriptionJob {
         }
       ]
       routes: [
-      { 
-          # adapter --> chunker
-          parentIoFolderReferenceId: "wsaOutputFolder"
-          childIoFolderReferenceId: "siInputFolder"
-          options: {}
-        }
         { 
           # chunker --> engine
           parentIoFolderReferenceId: "siOutputFolder"
@@ -152,38 +132,24 @@ NOTE: Facial recognition requires a trained library in order to successfully pro
 mutation FaceBoxJob {
     createJob(input: {
       target: { status: "downloaded" } 
-      # targetId: 123456789 # use this line with the tdoId and comment the line above to reprocess an existing piece of media
-      clusterId :"rt-1cdc1d6d-a500-467a-bc46-d3c5bf3d6901"
       tasks: [
         {
-          # webstream adapter
-          engineId: "9e611ad7-2d3b-48f6-a51b-0a1ba40fe255"
-          payload: { url: "LINK_TO_YOUR_FILE" }
-          ioFolders: [
-            { referenceId: "wsaOutputFolder", mode: stream, type: output }
-          ]
-          executionPreferences: { priority:-20 }
-        }
-        {
-          # Ingester engine to break audio into chunks
           engineId: "8bdb0e3b-ff28-4f6e-a3ba-887bd06e6440"
           payload:{
-            ffmpegTemplate: "frame"
+            ffmpegTemplate: "frame",
+            url: "LINK_TO_YOUR_FILE",
             customFFMPEGProperties: { framesPerSecond: "1" }
           }
           ioFolders: [
-            { referenceId: "siInputFolder", mode: stream, type: input }
             { referenceId: "siOutputFolder", mode: chunk, type: output }
           ]
-          executionPreferences: { parentCompleteBeforeStarting: true, priority:-20 }
+          executionPreferences: { parentCompleteBeforeStarting: false, priority:-20 }
         }
         {
-          # Facial recognition using a library
-          engineId: "ENTER_ENGINE_ID"
+          engineId: "ENGINE_ID"
           payload: {
             mode: "library-run",
             libraryId: "YOUR_LIBRARY_ID",
-            libraryEngineModelId: "YOUR_LATEST_LIBRARY_MODEL" 
           }          
           ioFolders: [
             { referenceId: "engineInputFolder", mode: chunk, type: input }
@@ -192,7 +158,6 @@ mutation FaceBoxJob {
           executionPreferences: { parentCompleteBeforeStarting: true, priority:-20 }
         }
         {
-          # Output writer
           engineId: "8eccf9cc-6b6d-4d7d-8cb3-7ebf4950c5f3"
           executionPreferences: { parentCompleteBeforeStarting: true, priority:-20 }
           ioFolders: [
@@ -201,12 +166,6 @@ mutation FaceBoxJob {
         }
       ]
       routes: [
-      { 
-          # adapter --> chunker
-          parentIoFolderReferenceId: "wsaOutputFolder"
-          childIoFolderReferenceId: "siInputFolder"
-          options: {}
-        }
         { 
           # chunker --> engine
           parentIoFolderReferenceId: "siOutputFolder"
@@ -232,41 +191,28 @@ Logo Recognition engineId(s):
 
  Engine Name             | engineId                             | payload name
  ----------------------- | ------------------------------------ | --------------------------
- LogoGrab (low rez)      | 4a52a78f-3bc7-4b3a-9b5a-1a192cc6cfe1 | key
+ LogoGrab (low res)      | 4a52a78f-3bc7-4b3a-9b5a-1a192cc6cfe1 | key
 
 
 ```
 mutation LogoRecognitionJob {
     createJob(input: {
       target: { status: "downloaded" } 
-      # targetId: 123456789 # use this line with the tdoId and comment the line above to reprocess an existing piece of media
-      clusterId :"rt-1cdc1d6d-a500-467a-bc46-d3c5bf3d6901"
       tasks: [
         {
-          # webstream adapter
-          engineId: "9e611ad7-2d3b-48f6-a51b-0a1ba40fe255"
-          payload: { url: "LINK_TO_YOUR_FILE" }
-          ioFolders: [
-            { referenceId: "wsaOutputFolder", mode: stream, type: output }
-          ]
-          executionPreferences: { priority:-20 }
-        }
-        {
-          # Ingester engine to break audio into chunks
           engineId: "8bdb0e3b-ff28-4f6e-a3ba-887bd06e6440"
           payload:{
-            ffmpegTemplate: "frame"
+            ffmpegTemplate: "frame",
+            url: "LINK_TO_YOUR_FILE",
             customFFMPEGProperties: { framesPerSecond: "1" }
           }
           ioFolders: [
-            { referenceId: "siInputFolder", mode: stream, type: input }
             { referenceId: "siOutputFolder", mode: chunk, type: output }
           ]
-          executionPreferences: { parentCompleteBeforeStarting: true, priority:-20 }
+          executionPreferences: { parentCompleteBeforeStarting: false, priority:-20 }
         }
         {
-          # Logo recognition using a library
-          engineId: "ENTER_ENGINE_ID"
+          engineId: "ENGINE_ID"
           payload: { key: "1arju7us157v6cldj6u6bdd7bnhg5o8095dru7nh" }        
           ioFolders: [
             { referenceId: "engineInputFolder", mode: chunk, type: input }
@@ -275,7 +221,6 @@ mutation LogoRecognitionJob {
           executionPreferences: { parentCompleteBeforeStarting: true, priority:-20 }
         }
         {
-          # Output writer
           engineId: "8eccf9cc-6b6d-4d7d-8cb3-7ebf4950c5f3"
           executionPreferences: { parentCompleteBeforeStarting: true, priority:-20 }
           ioFolders: [
@@ -284,12 +229,6 @@ mutation LogoRecognitionJob {
         }
       ]
       routes: [
-      { 
-          # adapter --> chunker
-          parentIoFolderReferenceId: "wsaOutputFolder"
-          childIoFolderReferenceId: "siInputFolder"
-          options: {}
-        }
         { 
           # chunker --> engine
           parentIoFolderReferenceId: "siOutputFolder"
@@ -321,34 +260,21 @@ Google OCR engineId(s):
 mutation GoogleOCRJob {
     createJob(input: {
       target: { status: "downloaded" } 
-      # targetId: 123456789 # use this line with the tdoId and comment the line above to reprocess an existing piece of media
-      clusterId :"rt-1cdc1d6d-a500-467a-bc46-d3c5bf3d6901"
       tasks: [
         {
-          # webstream adapter
-          engineId: "9e611ad7-2d3b-48f6-a51b-0a1ba40fe255"
-          payload: { url: "LINK_TO_YOUR_FILE" }
-          ioFolders: [
-            { referenceId: "wsaOutputFolder", mode: stream, type: output }
-          ]
-          executionPreferences: { priority:-20 }
-        }
-        {
-          # Ingester engine to break audio into chunks
           engineId: "8bdb0e3b-ff28-4f6e-a3ba-887bd06e6440"
           payload:{
-            ffmpegTemplate: "frame"
+            ffmpegTemplate: "frame",
+            url: "LINK_TO_YOUR_FILE",
             customFFMPEGProperties: { framesPerSecond: "1" }
           }
           ioFolders: [
-            { referenceId: "siInputFolder", mode: stream, type: input }
             { referenceId: "siOutputFolder", mode: chunk, type: output }
           ]
-          executionPreferences: { parentCompleteBeforeStarting: true, priority:-20 }
+          executionPreferences: { parentCompleteBeforeStarting: false, priority:-20 }
         }
         {
-          # Google OCR
-          engineId: "ENTER_ENGINE_ID"    
+          engineId: "ENGINE_ID"    
           ioFolders: [
             { referenceId: "engineInputFolder", mode: chunk, type: input }
             { referenceId: "engineOutputFolder", mode: chunk, type: output }
@@ -356,7 +282,6 @@ mutation GoogleOCRJob {
           executionPreferences: { parentCompleteBeforeStarting: true, priority:-20 }
         }
         {
-          # Output writer
           engineId: "8eccf9cc-6b6d-4d7d-8cb3-7ebf4950c5f3"
           executionPreferences: { parentCompleteBeforeStarting: true, priority:-20 }
           ioFolders: [
@@ -365,12 +290,6 @@ mutation GoogleOCRJob {
         }
       ]
       routes: [
-      { 
-          # adapter --> chunker
-          parentIoFolderReferenceId: "wsaOutputFolder"
-          childIoFolderReferenceId: "siInputFolder"
-          options: {}
-        }
         { 
           # chunker --> engine
           parentIoFolderReferenceId: "siOutputFolder"
@@ -434,7 +353,7 @@ query getEngineOutput {
 ```
 # Job Notifications
 
-Veritone's `notificationUris` field allows you to link to a custom endpoint(s).  This removes the need to poll for job completion, you will instead be notified when the job completes at the endpoint provided.
+Veritone's `notificationUris` field allows you to link to a custom endpoint(s).  This removes the need to poll for job completion, you will instead be notified when a job or task completes at the endpoint provided.
 
 This example notifies you when the output is completed:
 
@@ -448,78 +367,4 @@ This example notifies you when the output is completed:
   ]
   notificationUris: ["https://example.net/dump"]
 }
-```
-
-This example notifies you as each task is completed:
-
-```
-mutation createCognitionJob {
-    createJob(input: {
-      targetId: "TDO ID"
-      notificationUris: [ "https://example.net/dump" ] # This endpoint will be set for each task
-      clusterId :"rt-1cdc1d6d-a500-467a-bc46-d3c5bf3d6901"
-      tasks: [
-        {
-          # webstream adapter
-          engineId: "9e611ad7-2d3b-48f6-a51b-0a1ba40fe255"
-          ioFolders: [
-            { referenceId: "wsaOutputFolder", mode: stream, type: output }
-          ]
-          executionPreferences: { priority:-20 }
-        }
-        {
-          # Ingester engine to break audio into 20 second chunks
-          engineId: "8bdb0e3b-ff28-4f6e-a3ba-887bd06e6440"
-          payload:{
-            ffmpegTemplate: "audio"
-            customFFMPEGProperties: { chunkSizeInSeconds: "20" }
-          }
-          ioFolders: [
-            { referenceId: "siInputFolder", mode: stream, type: input }
-            { referenceId: "siOutputFolder", mode: chunk, type: output }
-          ]
-          executionPreferences: { parentCompleteBeforeStarting: true, priority:-20 }
-        }
-        {
-          # English transcription with optional payload field
-          engineId: "c0e55cde-340b-44d7-bb42-2e0d65e98255"
-          payload: {}
-          ioFolders: [
-            { referenceId: "engineInputFolder", mode: chunk, type: input }
-            { referenceId: "engineOutputFolder", mode: chunk, type: output }
-          ]
-          executionPreferences: { parentCompleteBeforeStarting: true, priority:-20 }
-        }
-        {
-          # Output writer
-          engineId: "8eccf9cc-6b6d-4d7d-8cb3-7ebf4950c5f3"
-          executionPreferences: { parentCompleteBeforeStarting: true, priority:-20 }
-          ioFolders: [
-            { referenceId: "owInputFolder", mode: chunk, type: input }
-          ]
-        }
-      ]
-      routes: [
-      { 
-          # adapter --> chunker
-          parentIoFolderReferenceId: "wsaOutputFolder"
-          childIoFolderReferenceId: "siInputFolder"
-          options: {}
-        }
-        { 
-          # chunker --> engine
-          parentIoFolderReferenceId: "siOutputFolder"
-          childIoFolderReferenceId: "engineInputFolder"
-          options: {}
-        }
-        { 
-          # engine --> output writer
-          parentIoFolderReferenceId: "engineOutputFolder"
-          childIoFolderReferenceId: "owInputFolder"
-          options: {}
-        }
-      ]
-    }){
-      id
-}}
 ```

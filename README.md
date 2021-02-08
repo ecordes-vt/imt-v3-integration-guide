@@ -13,6 +13,14 @@ Sections:
   
   - [google ocr job](#google-ocr)
   
+[create tdo](#create-tdo)
+
+  - [create tdo with asset](#createtdowithasset)
+  
+  - [reprocess job](#reprocess-job)
+  
+  - [delete tdo](#delete-tdo)
+  
 [checking job status](#checking-job-status)
 
 [retrieving job output](#retrieving-job-output)
@@ -311,6 +319,98 @@ mutation GoogleOCRJob {
       targetId
       id
 }}
+```
+
+# Create TDO
+
+Veritone uses a [TemporalDataObject](https://api.veritone.com/v3/graphqldocs/temporaldataobject.doc.html) to store information on a media asset, this information includes transcripts, uploaded media assets, and other meta data.  You can create a TDO and include a media asset to later call jobs against it.  When cognitive processing has finished and you have retrieved your data, the TDO can be deleted.
+
+# CreateTDOWithAsset
+
+[GraphQL Schema Definition](https://api.veritone.com/v3/graphqldocs/createtdowithasset.doc.html)
+
+```
+mutation {
+ createTDOWithAsset(input: {
+   startDateTime: 1602797281,
+   updateStopDateTimeFromAsset: true
+   assetType:"media"
+   contentType: "video/mp4"
+   uri:"<FILE_URL>"
+ }){
+   id
+ }
+}
+```
+
+# Reprocess Job
+
+Use the TDO ID returned for the `targetID` and for Veritone's asset retrieval api.
+
+```
+mutation reprocessJob {
+    createJob(input: {
+      targetId: TDO_ID 
+      tasks: [
+        {
+          engineId: "8bdb0e3b-ff28-4f6e-a3ba-887bd06e6440"
+          payload:{
+            ffmpegTemplate: "audio",
+            url: "https://api.veritone.com/media-streamer/download/tdo/TDO_ID",
+            customFFMPEGProperties: { chunkSizeInSeconds: "300" }
+          }
+          ioFolders: [
+            { referenceId: "siOutputFolder", mode: chunk, type: output }
+          ]
+          executionPreferences: { parentCompleteBeforeStarting: false, priority:-20 }
+        }
+        {
+          engineId: "ENGINE_ID"
+          ioFolders: [
+            { referenceId: "engineInputFolder", mode: chunk, type: input }
+            { referenceId: "engineOutputFolder", mode: chunk, type: output }
+          ]
+          executionPreferences: { parentCompleteBeforeStarting: true, priority:-20 }
+        }
+        {
+          # Output writer
+          engineId: "8eccf9cc-6b6d-4d7d-8cb3-7ebf4950c5f3"
+          executionPreferences: { parentCompleteBeforeStarting: true, priority:-20 }
+          ioFolders: [
+            { referenceId: "owInputFolder", mode: chunk, type: input }
+          ]
+        }
+      ]
+      routes: [
+        { 
+          # chunker --> engine
+          parentIoFolderReferenceId: "siOutputFolder"
+          childIoFolderReferenceId: "engineInputFolder"
+          options: {}
+        }
+        { 
+          # engine --> output writer
+          parentIoFolderReferenceId: "engineOutputFolder"
+          childIoFolderReferenceId: "owInputFolder"
+          options: {}
+        }
+      ]
+    }){
+      targetId
+      id
+}}
+```
+
+# Delete TDO
+
+The TDO metadata, its assets, all storage objects, engine results, and search index data are deleted.
+```
+mutation deleteTDO {
+  deleteTDO(id: "TDO_ID") {
+    id
+    message
+  }
+}
 ```
 
 # Checking job status
